@@ -12,6 +12,8 @@ settings = EasySettings("configuration.conf")
 config_channel = None
 source_channel = None
 recepients = settings.get("recepients")
+wait_for_source_forward = False
+
 
 if not recepients:
     recepients = []
@@ -132,32 +134,52 @@ async def list_recepients():
 
 @client.on(events.NewMessage)
 async def my_event_handler(event):
+    global wait_for_source_forward
     chat = await event.get_chat()
     sender = await event.get_sender()
-
+        
     if type(chat).__name__ == "Channel" and chat.title == config_channel.title:
+        print(event)
+        print(dir(event))
+        fwd_from = event.original_update.message.fwd_from
+        if fwd_from and wait_for_source_forward and fwd_from.channel_id:
+            await update_source_channel(fwd_from.channel_id)
+            wait_for_source_forward = False
+            return
+    
         print("Command received")
-        command, *args = event.raw_text.split(' ')
-        if command == "set_source_by_url":
+        command, *args = event.raw_text.split(':')
+        if command == "set source by url":
             print("Updating source dialog to: ", args[0])
             await update_source_channel(args[0])
-        elif command == "set_source_by_name":
+        elif command == "set source by name":
             print("Updating source dialog to: ", args[0])
             await update_source_channel(get_id_by_dialog_title(args[0]))
-        elif command == "set_config_channel":
+        elif command == "set source by message":
+            await client.send_message(message="Please forward message from another channel to set it as source...", entity=config_channel)
+            wait_for_source_forward = True
+        elif command == "set config channel":
             print("Updating control channel to: ", args[0])
             await update_config_channel(args[0])
-        elif command == "add_recepient":
+        elif command == "add recepient":
             print("Adding new recepient: ", args[0])
             await add_recepient(args[0])
-        elif command == "remove_recepient":
+        elif command == "remove recepient":
             print("Removing recepient: ", args[0])
             await remove_recepient(args[0])
-        elif command == "list_recepients":
+        elif command == "list recepients":
             print("Printing recepients list")
             await list_recepients()
         elif command == "help":
-            await client.send_message(message="set_source_by_url\nset_source_by_name\nset_config_channel\nadd_recepient\nremove_recepient\nlist_recepients", entity=config_channel)
+            await client.send_message(message="""
+set source by url: USERNAME or INVITE_LINK
+set source by name: DIALOG NAME
+set source by message
+set config channel: INVITE_LINK
+add recepient: USERNAME or INVITE_LINK
+remove recepient: USERNAME or INVITE_LINK
+list recepients
+""", entity=config_channel)
         else:
             print("Unknown command")
             await unknown_command_response()
