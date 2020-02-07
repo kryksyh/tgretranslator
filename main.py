@@ -72,6 +72,18 @@ async def unknown_command_response():
     await client.send_message(config_channel, "Unknown command")
 
 
+async def get_id_by_dialog_title(title):
+    try:
+        dialogs = await client.get_dialogs()
+        dialog = [dialog for dialog in dialogs if title in dialog.title]
+        if len(dialog) > 1:
+            raise Exception("More than one dialog with that name")
+        if led(dialog) == 0:
+            raise Exception("No such dialogs found")
+        return dialog.id
+    except:
+        await client.send_message(config_channel, "Failed to find dialog with name: " + title)
+
 async def update_source_channel(link):
     global source_channel
     try:
@@ -126,9 +138,12 @@ async def my_event_handler(event):
     if type(chat).__name__ == "Channel" and chat.title == config_channel.title:
         print("Command received")
         command, *args = event.raw_text.split(' ')
-        if command == "set_source":
+        if command == "set_source_by_url":
             print("Updating source dialog to: ", args[0])
             await update_source_channel(args[0])
+        elif command == "set_source_by_name":
+            print("Updating source dialog to: ", args[0])
+            await update_source_channel(get_id_by_dialog_title(args[0]))
         elif command == "set_config_channel":
             print("Updating control channel to: ", args[0])
             await update_config_channel(args[0])
@@ -142,7 +157,7 @@ async def my_event_handler(event):
             print("Printing recepients list")
             await list_recepients()
         elif command == "help":
-            await client.send_message(message="set_source\nset_config_channel\nadd_recepient\nremove_recepient\nlist_recepients", entity=config_channel)
+            await client.send_message(message="set_source_by_url\nset_source_by_name\nset_config_channel\nadd_recepient\nremove_recepient\nlist_recepients", entity=config_channel)
         else:
             print("Unknown command")
             await unknown_command_response()
