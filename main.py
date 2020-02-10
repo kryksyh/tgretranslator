@@ -130,7 +130,10 @@ async def remove_recepient(recepient):
 
 async def list_recepients():
     text = "\n".join(recepients)
-    await client.send_message(config_channel, text)
+    if text:
+        await client.send_message(config_channel, text)
+    else:
+        await client.send_message(config_channel, "No recepients added")
 
 @client.on(events.NewMessage)
 async def my_event_handler(event):
