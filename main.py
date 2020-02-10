@@ -152,8 +152,8 @@ async def my_event_handler(event):
     
         print("Command received")
         command, *args = event.raw_text.split(':')
-        command = command.strip()
-        args = "".join(args).strip()
+        command = command.strip().lower()
+        args = ":".join(args).strip().lower()
         if command == "set source by url":
             print("Updating source dialog to: ", args)
             await update_source_channel(args)
