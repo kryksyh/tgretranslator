@@ -152,24 +152,26 @@ async def my_event_handler(event):
     
         print("Command received")
         command, *args = event.raw_text.split(':')
+        command = command.strip()
+        args = "".join().strip()
         if command == "set source by url":
-            print("Updating source dialog to: ", args[0])
-            await update_source_channel(args[0])
+            print("Updating source dialog to: ", args)
+            await update_source_channel(args)
         elif command == "set source by name":
-            print("Updating source dialog to: ", args[0])
-            await update_source_channel(get_id_by_dialog_title(args[0]))
+            print("Updating source dialog to: ", args)
+            await update_source_channel(get_id_by_dialog_title(args))
         elif command == "set source by message":
             await client.send_message(message="Please forward message from another channel to set it as source...", entity=config_channel)
             wait_for_source_forward = True
         elif command == "set config channel":
-            print("Updating control channel to: ", args[0])
-            await update_config_channel(args[0])
+            print("Updating control channel to: ", args)
+            await update_config_channel(args)
         elif command == "add recepient":
-            print("Adding new recepient: ", args[0])
-            await add_recepient(args[0])
+            print("Adding new recepient: ", args)
+            await add_recepient(args)
         elif command == "remove recepient":
-            print("Removing recepient: ", args[0])
-            await remove_recepient(args[0])
+            print("Removing recepient: ", args)
+            await remove_recepient(args)
         elif command == "list recepients":
             print("Printing recepients list")
             await list_recepients()
